@@ -1,14 +1,10 @@
 {
   "devCommand": "turbo dev",
   "buildCommand": "turbo build",
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/(.*)",
-      "dest": "/apps/server/api/index.ts"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/apps/web/dist/$1"
+      "source": "/api/(.*)",
+      "destination": "/apps/server/api/index.ts"
     }
   ]
 }
