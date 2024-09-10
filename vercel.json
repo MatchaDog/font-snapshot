@@ -1,6 +1,6 @@
 {
-  "devCommand": "bun run dev",
-  "buildCommand": "bun run build",
+  "devCommand": "turbo dev",
+  "buildCommand": "turbo build",
   "routes": [
     {
       "src": "/api/(.*)",

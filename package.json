@@ -2,7 +2,8 @@
   "name": "font-snapshot",
   "type": "module",
   "scripts": {
-    "dev": "turbo dev"
+    "dev": "turbo dev",
+    "build":"turbo build"
   },
   "devDependencies": {
     "@types/bun": "latest",
