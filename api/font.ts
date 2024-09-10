@@ -95,8 +95,8 @@ async function drawImage(fontFamily: string, input: FontPreviewInput) {
 const routes: FastifyPluginAsync = async (server) => {
   server.register(
     async (instance: FastifyInstance, opts: FastifyServerOptions, done) => {
-      instance.get(
-        "/:family",
+      instance.post(
+        "/preview/:family",
         async (
           request: FastifyRequest<{
             Body: FontPreviewInput;
@@ -145,9 +145,6 @@ const routes: FastifyPluginAsync = async (server) => {
         }
       );
       done();
-    },
-    {
-      prefix: "/font/preview",
     }
   );
 };
