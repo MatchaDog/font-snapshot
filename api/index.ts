@@ -1,6 +1,5 @@
 import Fastify from "fastify";
 import * as dotenv from "dotenv";
-import fontRoutes from "./font";
 
 dotenv.config();
 
@@ -8,7 +7,7 @@ const app = Fastify({
   logger: true,
 });
 
-app.register(fontRoutes, {
+app.register(import("./font"), {
   prefix: "/api",
 });
 
