@@ -110,7 +110,7 @@ const fontRoutes: FastifyPluginAsync = async (
     });
   });
   server.post(
-    "/",
+    "/font",
     async (
       request: FastifyRequest<{
         Body: FontPreviewInput;
