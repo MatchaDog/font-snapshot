@@ -1,4 +1,5 @@
 "use strict";
+import { type FastifyInstance, type FastifyServerOptions } from "fastify";
 
 // Read the .env file.
 import * as dotenv from "dotenv";
@@ -17,7 +18,7 @@ app.register(import("../index"), {
   prefix: "/",
 });
 
-export default async (req, res) => {
+export default async (req: FastifyInstance, res: FastifyServerOptions) => {
   await app.ready();
   app.server.emit("request", req, res);
 };
