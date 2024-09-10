@@ -1,0 +1,14 @@
+{
+  "devCommand": "bun run dev",
+  "buildCommand": "bun run build",
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/apps/server/api/index.ts"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/apps/web/dist/$1"
+    }
+  ]
+}
