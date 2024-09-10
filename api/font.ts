@@ -93,7 +93,16 @@ async function drawImage(fontFamily: string, input: FontPreviewInput) {
   return buffer;
 }
 
-export default async function (server: FastifyInstance) {
+export default async function (
+  server: FastifyInstance,
+  _: FastifyServerOptions,
+  done: any
+) {
+  server.get("/", async (request, reply) => {
+    return reply.send({
+      message: "Hello World",
+    });
+  });
   server.post(
     "/",
     async (
@@ -141,4 +150,5 @@ export default async function (server: FastifyInstance) {
       }
     }
   );
+  done();
 }

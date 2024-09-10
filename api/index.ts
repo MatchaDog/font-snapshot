@@ -1,24 +1,18 @@
 import Fastify from "fastify";
 import * as dotenv from "dotenv";
-
+import fontRoutes from "./font";
 dotenv.config();
 
 const app = Fastify({
   logger: true,
 });
 
-app.register(import("./font"), {
+app.register(fontRoutes, {
   prefix: "/api",
 });
 
-let isReady = false;
-
 const handler = async (req: any, res: any) => {
-  if (!isReady) {
-    await app.ready();
-    isReady = true;
-  }
-
+  await app.ready();
   app.server.emit("request", req, res);
 };
 
