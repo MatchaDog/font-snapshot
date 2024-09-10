@@ -6,5 +6,11 @@
       "source": "/api/(.*)",
       "destination": "/apps/server/api/index.ts"
     }
-  ]
+  ],
+  "functions": {
+    "apps/server/api/index.ts": {
+      "memory": 1024,
+      "maxDuration": 10
+    }
+  }
 }
