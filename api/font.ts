@@ -1,4 +1,10 @@
-import { type FastifyInstance, type FastifyServerOptions } from "fastify";
+import {
+  type FastifyInstance,
+  type FastifyPluginAsync,
+  type FastifyReply,
+  type FastifyRequest,
+  type FastifyServerOptions,
+} from "fastify";
 import fetch from "node-fetch";
 import { join, parse } from "node:path";
 import { mkdir, writeFile } from "node:fs/promises";
@@ -86,58 +92,64 @@ async function drawImage(fontFamily: string, input: FontPreviewInput) {
   return buffer;
 }
 
-export default async function (
-  instance: FastifyInstance,
-  opts: FastifyServerOptions
-) {
-  // Declare a route
-  instance.get("/", async function handler(request, reply) {
-    return { hello: "world" };
-  });
+const routes: FastifyPluginAsync = async (server) => {
+  server.register(
+    async (instance: FastifyInstance, opts: FastifyServerOptions, done) => {
+      instance.get(
+        "/:family",
+        async (
+          request: FastifyRequest<{
+            Body: FontPreviewInput;
+            Params: { family: string };
+          }>,
+          res: FastifyReply
+        ) => {
+          const { family } = request.params;
+          const input = request.body;
+          try {
+            const data = await fontApi.webfonts.list({
+              family: [family],
+            });
+            if (data.data.items?.[0]) {
+              const font = data.data.items[0];
+              const fontUrl = font.files!.regular;
+              logger.log(font.files);
 
-  instance.post<{
-    Body: FontPreviewInput;
-    Params: {
-      family: string;
-    };
-  }>("/font/preview/:family", async function handler(request, reply) {
-    const { family } = request.params;
-    const input = request.body;
-    try {
-      const data = await fontApi.webfonts.list({
-        family: [family],
-      });
-      if (data.data.items?.[0]) {
-        const font = data.data.items[0];
-        const fontUrl = font.files!.regular;
-        logger.log(font.files);
+              if (!font.family)
+                return { success: false, message: `未找到字体 ${font.family}` };
 
-        if (!font.family)
-          return { success: false, message: `未找到字体 ${font.family}` };
+              // 下载字体文件
+              const fontResponse = await fetch(fontUrl);
+              const fontBuffer = await fontResponse.arrayBuffer();
 
-        // 下载字体文件
-        const fontResponse = await fetch(fontUrl);
-        const fontBuffer = await fontResponse.arrayBuffer();
+              // 保存字体文件到临时目录
+              const tempDir = join(__dirname, "temp");
+              await mkdir(tempDir, { recursive: true });
+              const fontPath = join(tempDir, `${font.family}.ttf`);
+              await writeFile(fontPath, Buffer.from(fontBuffer));
 
-        // 保存字体文件到临时目录
-        const tempDir = join(__dirname, "temp");
-        await mkdir(tempDir, { recursive: true });
-        const fontPath = join(tempDir, `${font.family}.ttf`);
-        await writeFile(fontPath, Buffer.from(fontBuffer));
+              // 注册字体
+              GlobalFonts.registerFromPath(
+                join(__dirname, "temp", `${font.family!}.ttf`),
+                font.family!
+              );
 
-        // 注册字体
-        GlobalFonts.registerFromPath(
-          join(__dirname, "temp", `${font.family!}.ttf`),
-          font.family!
-        );
-
-        return await drawImage(font.family, input);
-      } else {
-        return { success: false, message: `未找到字体 ${family}` };
-      }
-    } catch (error) {
-      logger.error(error);
-      return { success: false, message: "获取或注册字体时发生错误" };
+              return await drawImage(font.family, input);
+            } else {
+              return { success: false, message: `未找到字体 ${family}` };
+            }
+          } catch (error) {
+            logger.error(error);
+            return { success: false, message: "获取或注册字体时发生错误" };
+          }
+        }
+      );
+      done();
+    },
+    {
+      prefix: "/font/preview",
     }
-  });
-}
+  );
+};
+
+export default routes;
