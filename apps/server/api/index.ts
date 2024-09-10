@@ -7,8 +7,8 @@ const app = Fastify({
   logger: true,
 });
 
-app.register(import("../index"), {
-  prefix: "/",
+app.register(import("./font"), {
+  prefix: "/api",
 });
 
 let isReady = false;
