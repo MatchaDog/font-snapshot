@@ -23,6 +23,7 @@ const HEIGHT = 1440; // 增加高度以提高清晰度
 const PADDING = 40; // 添加内边距
 
 interface FontPreviewInput {
+  family: string;
   text: string;
   width?: number;
   height?: number;
@@ -96,19 +97,17 @@ const routes: FastifyPluginAsync = async (server) => {
   server.register(
     async (instance: FastifyInstance, opts: FastifyServerOptions, done) => {
       instance.post(
-        "/preview/:family",
+        "/",
         async (
           request: FastifyRequest<{
             Body: FontPreviewInput;
-            Params: { family: string };
           }>,
           res: FastifyReply
         ) => {
-          const { family } = request.params;
           const input = request.body;
           try {
             const data = await fontApi.webfonts.list({
-              family: [family],
+              family: [input.family],
             });
             if (data.data.items?.[0]) {
               const font = data.data.items[0];
@@ -136,7 +135,7 @@ const routes: FastifyPluginAsync = async (server) => {
 
               return await drawImage(font.family, input);
             } else {
-              return { success: false, message: `未找到字体 ${family}` };
+              return { success: false, message: `未找到字体 ${input.family}` };
             }
           } catch (error) {
             logger.error(error);
@@ -145,6 +144,9 @@ const routes: FastifyPluginAsync = async (server) => {
         }
       );
       done();
+    },
+    {
+      prefix: "/font",
     }
   );
 };

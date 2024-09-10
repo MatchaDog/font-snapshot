@@ -8,8 +8,8 @@ import {
   TextField,
 } from "@/components/ui/textfield";
 
-const fetchPreviewImage = async (font: string, params: Record<string, any>) => {
-  const response = await fetch(`/api/font/preview/${font}`, {
+const fetchPreviewImage = async (params: Record<string, any>) => {
+  const response = await fetch(`/api/font`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(params),
@@ -37,14 +37,6 @@ const PreviewPage = () => {
   const debouncedSetTextColor = debounce({ delay: 300 }, setTextColor);
   const debouncedSetBackgroundColor = debounce({ delay: 300 }, setBackgroundColor);
 
-  console.log({
-    text: text(),
-    width: width(),
-    height: height(),
-    textColor: textColor(),
-    backgroundColor: backgroundColor(),
-  });
-
   const query = createQuery(() => ({
     queryKey: [
       "previewImage",
@@ -56,7 +48,8 @@ const PreviewPage = () => {
       backgroundColor(),
     ],
     queryFn: () =>
-      fetchPreviewImage(params.font, {
+      fetchPreviewImage({
+        family: params.font,
         text: text(),
         width: width(),
         height: height(),

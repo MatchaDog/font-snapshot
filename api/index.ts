@@ -9,7 +9,7 @@ const app = Fastify({
 });
 
 app.register(fontRoutes, {
-  prefix: "/api/font",
+  prefix: "/api",
 });
 
 let isReady = false;
