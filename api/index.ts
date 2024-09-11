@@ -110,7 +110,7 @@ const fontRoutes: FastifyPluginAsync = async (
     });
   });
   server.post(
-    "/font",
+    "/",
     async (
       request: FastifyRequest<{
         Body: FontPreviewInput;
@@ -159,7 +159,7 @@ const fontRoutes: FastifyPluginAsync = async (
 };
 
 app.register(fontRoutes, {
-  prefix: "/api",
+  prefix: "/api/font",
 });
 
 const handler = async (req: any, res: any) => {
