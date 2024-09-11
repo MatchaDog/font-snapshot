@@ -1,28 +1,17 @@
-import {
-  type FastifyInstance,
-  type FastifyPluginAsync,
-  type FastifyReply,
-  type FastifyRequest,
-  type FastifyServerOptions,
-} from "fastify";
-import Fastify from "fastify";
-import fetch from "node-fetch";
-import { join, parse } from "node:path";
-import { mkdir, writeFile } from "node:fs/promises";
+import { NextResponse } from "next/server";
 import { createCanvas, GlobalFonts } from "@napi-rs/canvas";
 import * as fontkit from "fontkit";
-import consola from "consola";
 import * as apis from "googleapis";
+import { join, parse } from "node:path";
+import { mkdir, writeFile } from "node:fs/promises";
+import fetch from "node-fetch";
+import consola from "consola";
 
 const fontApi = new apis.webfonts_v1.Webfonts({
   auth: "AIzaSyCZkjW4Dh2fr7P-3BMthkW40KaQxoNpmi4",
 });
 
 const logger = consola.withTag("server");
-
-const app = Fastify({
-  logger: true,
-});
 
 // 定义预览图尺寸
 const WIDTH = 4000; // 增加宽度以提高清晰度
@@ -45,7 +34,7 @@ async function drawImage(fontFamily: string, input: FontPreviewInput) {
   const backgroundColor = input.backgroundColor ?? "#f0f0f0";
 
   const font = fontkit.openSync(
-    join(__dirname, "temp", `${fontFamily}.ttf`)
+    join(process.cwd(), "temp", `${fontFamily}.ttf`)
   ) as fontkit.Font;
   const displayName =
     font.getName("fullName", "en") ||
@@ -100,71 +89,55 @@ async function drawImage(fontFamily: string, input: FontPreviewInput) {
   return buffer;
 }
 
-const fontRoutes: FastifyPluginAsync = async (
-  server: FastifyInstance,
-  _: FastifyServerOptions
-) => {
-  server.get("/", async (request, reply) => {
-    return reply.send({
-      message: "Hello World",
+export async function POST(request: Request) {
+  const input = await request.json();
+  try {
+    const data = await fontApi.webfonts.list({
+      family: [decodeURIComponent(input.family)],
     });
-  });
-  server.post(
-    "/",
-    async (
-      request: FastifyRequest<{
-        Body: FontPreviewInput;
-      }>,
-      res: FastifyReply
-    ) => {
-      const input = request.body;
-      try {
-        const data = await fontApi.webfonts.list({
-          family: [input.family],
+    if (data.data.items?.[0]) {
+      const font = data.data.items[0];
+      const fontUrl = font.files!.regular;
+
+      if (!font.family)
+        return NextResponse.json({
+          success: false,
+          message: `未找到字体 ${font.family}`,
         });
-        if (data.data.items?.[0]) {
-          const font = data.data.items[0];
-          const fontUrl = font.files!.regular;
-          logger.log(font.files);
 
-          if (!font.family)
-            return { success: false, message: `未找到字体 ${font.family}` };
+      // 下载字体文件
+      const fontResponse = await fetch(fontUrl);
+      const fontBuffer = await fontResponse.arrayBuffer();
 
-          // 下载字体文件
-          const fontResponse = await fetch(fontUrl);
-          const fontBuffer = await fontResponse.arrayBuffer();
+      // 保存字体文件到临时目录
+      const tempDir = join(process.cwd(), "temp");
+      await mkdir(tempDir, { recursive: true });
+      const fontPath = join(tempDir, `${font.family}.ttf`);
+      await writeFile(fontPath, Buffer.from(fontBuffer));
 
-          // 保存字体文件到临时目录
-          const tempDir = join(__dirname, "temp");
-          await mkdir(tempDir, { recursive: true });
-          const fontPath = join(tempDir, `${font.family}.ttf`);
-          await writeFile(fontPath, Buffer.from(fontBuffer));
+      // 注册字体
+      GlobalFonts.registerFromPath(
+        join(process.cwd(), "temp", `${font.family!}.ttf`),
+        font.family!
+      );
 
-          // 注册字体
-          GlobalFonts.registerFromPath(
-            join(__dirname, "temp", `${font.family!}.ttf`),
-            font.family!
-          );
-
-          return await drawImage(font.family, input);
-        } else {
-          return { success: false, message: `未找到字体 ${input.family}` };
-        }
-      } catch (error) {
-        logger.error(error);
-        return { success: false, message: "获取或注册字体时发生错误" };
-      }
+      const imageBuffer = await drawImage(font.family, input);
+      return new NextResponse(imageBuffer, {
+        headers: {
+          "Content-Type": "image/png",
+        },
+      });
+    } else {
+      return NextResponse.json({
+        success: false,
+        message: `未找到字体 ${input.family}`,
+      });
     }
-  );
-};
-
-app.register(fontRoutes, {
-  prefix: "/api/font",
-});
-
-const handler = async (req: any, res: any) => {
-  await app.ready();
-  app.server.emit("request", req, res);
-};
-
-export default handler;
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({
+      success: false,
+      message: "获取或注册字体时发生错误",
+    });
+  }
+}

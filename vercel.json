@@ -1,16 +1,5 @@
 {
-  "devCommand": "turbo dev",
-  "buildCommand": "turbo build",
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/index"
-    }
-  ],
-  "functions": {
-    "api/index.ts": {
-      "memory": 1024,
-      "maxDuration": 10
-    }
-  }
+  "buildCommand": "next build",
+  "devCommand": "next dev",
+  "framework": "nextjs"
 }
