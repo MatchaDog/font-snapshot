@@ -1,7 +1,24 @@
 {
-  "name": "next-font",
+  "name": "font-snapshot",
   "version": "0.1.0",
-  "private": true,
+  "description": "一个基于 Next.js 的字体预览和快照工具",
+  "author": "MatchaDog <matchahans@163.com>",
+  "license": "MIT",
+  "homepage": "https://github.com/MatchaDog/font-snapshot",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MatchaDog/font-snapshot.git"
+  },
+  "bugs": {
+    "url": "https://github.com/MatchaDog/font-snapshot/issues"
+  },
+  "keywords": [
+    "font",
+    "preview",
+    "snapshot",
+    "nextjs",
+    "react"
+  ],
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -40,5 +57,10 @@
     "postcss": "^8.4.45",
     "tailwindcss": "^3.4.10",
     "typescript": "^5"
-  }
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.2.0"
+  },
+  "packageManager": "bun@1.1.26"
 }
