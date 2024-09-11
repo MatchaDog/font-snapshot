@@ -34,7 +34,7 @@ async function drawImage(fontFamily: string, input: FontPreviewInput) {
   const backgroundColor = input.backgroundColor ?? "#f0f0f0";
 
   const font = fontkit.openSync(
-    join(process.cwd(), "temp", `${fontFamily}.ttf`)
+    join("/tmp", `${fontFamily}.ttf`)
   ) as fontkit.Font;
   const displayName =
     font.getName("fullName", "en") ||
@@ -110,14 +110,14 @@ export async function POST(request: Request) {
       const fontBuffer = await fontResponse.arrayBuffer();
 
       // 保存字体文件到临时目录
-      const tempDir = join(process.cwd(), "temp");
+      const tempDir = "/tmp";
       await mkdir(tempDir, { recursive: true });
       const fontPath = join(tempDir, `${font.family}.ttf`);
       await writeFile(fontPath, Buffer.from(fontBuffer));
 
       // 注册字体
       GlobalFonts.registerFromPath(
-        join(process.cwd(), "temp", `${font.family!}.ttf`),
+        join("/tmp", `${font.family!}.ttf`),
         font.family!
       );
 
